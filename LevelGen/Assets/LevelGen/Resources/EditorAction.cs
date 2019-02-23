@@ -1,1 +1,0 @@
-﻿public enum EditorAction { Null, MoveUp, MoveDown, Duplicate, Remove };
