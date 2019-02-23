@@ -127,6 +127,10 @@ public class LevelGenerator2D : MonoBehaviour {
 		RemoveEmptyGroups();
 	}
 
+	public void MergeGroups(string[] ids) {
+		throw new System.NotImplementedException();
+	}
+
 	private void RemoveEmptyGroups() {
 		level.groups = level.groups.Filter((g) => g.maps.Count > 0);
 	}

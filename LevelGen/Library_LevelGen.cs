@@ -131,9 +131,6 @@ namespace LevelGen.Editor {
 					#region Block Panel
 					GUILayout.Box("", BoxStyles.Colored(block.color), Width(60), Height(16));
 
-					if (block.type == Block.Type.Simple) DrawImage(block.obj != null ? AssetPreview.GetAssetPreview(block.obj.gameObject) : null, 16);
-					else GUILayout.FlexibleSpace();
-
 					Vertical(() => {
 						VerticalSpace(2);
 						Horizontal(() => {
@@ -157,7 +154,6 @@ namespace LevelGen.Editor {
 
 		private void DrawBlockSlicePanel(Block block) {
 			Horizontal(() => {
-				DrawGallery(Aesthetic.AssetsPreview(block.convexSlice), 3, 16);
 				DrawTable(block.convexSlice, 3, 0, 0, 4, 0);
 			});
 
