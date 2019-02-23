@@ -63,7 +63,7 @@ namespace LevelGen.Editor {
 		}
 
 		protected override void Setup() {
-			Debug.Log("Auto-locating level generator");
+			// Debug.Log("Auto-locating level generator");
 			t = gen;
 			gui = new RoomInspector(t);
 		}

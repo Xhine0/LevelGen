@@ -14,8 +14,8 @@
 	\subsection{Installing LevelGen}
 	Download the latest version of LevelGen (currently hosted a \url{https://github.com/Xhine0/LevelGen}), and place the folder somewhere in your project's assets folder.
 	\subsection{Setting up the level generator}
-	Open the LevelGen grid view and inspector, by selecting'Level Generator $\rightarrow$ Show all' in the toolbar. 
-	\\First, a level generator must exist in the scene. To create one, Click 'Create' in the 'Room Inspector'. An object named '\_Level' should now be in the scene.
+	Open the LevelGen graph and inspector, by clicking 'Level Generator $\rightarrow$ Show all' in the toolbar. 
+	\\First, a level generator must exist in the scene. To create one, Click 'Create' in the 'Room Inspector'. An object named '\_Level' should appear in the scene.
 	\subsection{Setting up a level}
 	First, a level save file must be created. This is done by right-clicking in the 'Project' window, then select 'Create $\rightarrow$ Level'. A file named 'New Level' should now appear. 
 	\\ To edit the level, add it to the level field in the room inspector.
@@ -31,7 +31,8 @@
 	\newpage
 	
 	\section{Using the LevelGen GUI}
-	\subsection{Creating a room}
+	\subsection{Managing rooms}
+	\subsubsection{Creating a room}
 	In the room inspector, click the 'Create Room' button, located at the bottom. The following menu (figure \ref{fig:create_room}) will appear:
 	
 	\begin{figure}[h]
@@ -43,7 +44,7 @@
 	The exit color defines where the room's exits are placed. 
 	\\When a bit map and an available id is assigned, the room can be created by clicking 'Add Room'. The room should now appear as a node on the room graph (figure \ref{fig:node_room})
 	
-	\subsection{Editing a room}
+	\subsubsection{Editing a room}
 	\begin{figure}[h]
 		\includegraphics[width=\linewidth]{img/Node_Room.PNG}
 		\caption{A node in the room graph}
@@ -52,12 +53,12 @@
 	
 	\begin{figure}[h]
 		\includegraphics[width=\linewidth]{img/Menu_EditRoom.PNG}
-		\caption{The room panel}
+		\caption{Room editing}
 		\label{fig:edit_room}
 	\end{figure}
 	
-	To edit a room, it must first be selected (indicated with an orange outline) in the room graph. It should now appear in the room inspector (figure \ref{fig:edit_room})
+	To edit a room, it must first be selected in the room graph. It should now appear in the room inspector (figure \ref{fig:edit_room}). 
 	
-	\subsection{Assigning blocks}
-	
+	\subsubsection{Editing blocks}
+	To add a block entry to the selected room, click on the desired color in the room's block list. Click on the color of an existing entry to remove it.  
 \end{document}

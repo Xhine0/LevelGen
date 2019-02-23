@@ -12,7 +12,7 @@ public class LevelGenerator2D : MonoBehaviour {
 	public const int COLOR_TOLERANCE = 1;
 
 	public Level level;
-	
+
 	public List<MapGroup> Groups { get => level?.groups; set { if (level != null) level.groups = value; } }
 
 	private GameObject exitTemplate = null;
@@ -84,7 +84,7 @@ public class LevelGenerator2D : MonoBehaviour {
 
 	#region Native Methods
 	private void Awake() {
-		
+
 	}
 	#endregion
 
@@ -111,33 +111,22 @@ public class LevelGenerator2D : MonoBehaviour {
 	public void RemoveRoom(string id) {
 		level.roomGraph.RemoveByValue(id);
 		level.exitGraph.RemoveByValue(id);
-		UngroupRoom(id);
+		UngroupRooms(id);
 	}
-	public void RemoveRoom(Graph.Node node) {
-		RemoveRoom(node.value);
+	public void RemoveRoom(Graph.Node node) => RemoveRoom(node.value);
+
+	public void GroupRooms(string[] ids) {
+		MapGroup group = new MapGroup(GetMapById(ids.Head()));
+		ids.Tail().Perform((id) => group.Add(GetMapById(id)));
+
+		UngroupRooms(ids);
+		level.groups.Add(group);
+	}
+	public void UngroupRooms(params string[] ids) {
+		ids.Perform((id) => GetGroupWithId(id).Remove(id));
+		RemoveEmptyGroups();
 	}
 
-	public void GroupRooms(string moveId, string targetId) {
-		BlockMap toMove = GetMapById(moveId).Clone();
-		GetGroupWithId(moveId).Remove(toMove);
-		GetGroupWithId(targetId).Add(toMove);
-		RemoveEmptyGroups();
-	}
-	public void UngroupRoom(string id) {
-		MapGroup group = GetGroupWithId(id);
-		group.Remove(id);
-		RemoveEmptyGroups();
-	}
-	public void SeparateRoomFromGroup(string id) {
-		MapGroup group = GetGroupWithId(id).Clone();
-		if (group.maps.Count <= 1) return;
-		BlockMap toMove = GetMapById(id).Clone();
-		UngroupRoom(id);
-		level.groups.Add(new MapGroup(toMove));
-		// Move current block definitions to new group
-		GetGroupWithId(id).Sync(group);
-	}
-	
 	private void RemoveEmptyGroups() {
 		level.groups = level.groups.Filter((g) => g.maps.Count > 0);
 	}
@@ -170,7 +159,7 @@ public class LevelGenerator2D : MonoBehaviour {
 		for (int i = transform.childCount - 1; i >= 0; i--) {
 			GameObject obj = transform.GetChild(i).gameObject;
 			if (!Application.isPlaying) DestroyImmediate(obj);
-			else if(obj.tag != "Player") Destroy(obj);
+			else if (obj.tag != "Player") Destroy(obj);
 		}
 	}
 
@@ -209,22 +198,22 @@ public class LevelGenerator2D : MonoBehaviour {
 		Transform exitParent = new GameObject().transform;
 		exitParent.name = "_Exits";
 		exitParent.transform.parent = transform;
-		
+
 		return (levelParent, SpawnExits(room, group[room.value], exitParent));
 		#endregion
 	}
 
 	internal void SpawnRoom(MapGroup group, string id, Transform parent) {
 		BlockMap map = group[id];
-		
+
 		// The current map's instance of the group's block collection
 		Dictionary<Color, Block> blocksInstance = map.blockOverrides.Append(group.Blocks).ValuesToDictionary((b) => b.color);
-		
+
 		for (int y = 0; y < map.Height; y++) {
 			for (int x = 0; x < map.Width; x++) {
 				Block b = blocksInstance.SafeGet(map.GetPixel(x, y));
-				if (b == null || b.inStasis) continue;
-				
+				if (b == null) continue;
+
 				void Spawn(bool goRight, bool goUp) {
 					Vector2Int pos = new Vector2Int(x, y);
 					var (Start, End, IsBeginning) = GetBlockShape(group, id, pos, goRight, goUp);
@@ -239,8 +228,8 @@ public class LevelGenerator2D : MonoBehaviour {
 		List<Transform> spawnedExits = new List<Transform>();
 		int ei = 0;
 		foreach (Graph.Node exit in level.exitGraph.FindNodesByValue(room.value)) {
-			GameObject obj = Instantiate(ExitTemplate, 
-				parent.position.ToXY() + map.Size * new Vector2(exit.pos.x, 1 - exit.pos.y) - (exit.size + new Vector2(-1, 1)) / 2, 
+			GameObject obj = Instantiate(ExitTemplate,
+				parent.position.ToXY() + map.Size * new Vector2(exit.pos.x, 1 - exit.pos.y) - (exit.size + new Vector2(-1, 1)) / 2,
 				new Quaternion(0, 0, 0, 0)
 			) as GameObject;
 			obj.transform.localScale = exit.size;

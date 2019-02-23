@@ -56,7 +56,7 @@ public abstract class CGUIWindow : EditorWindow {
 		if (!SetupInvariant) {
 			Setup();
 			if (!SetupInvariant) throw new System.Exception("Setup method doesn't uphold setup invariant");
-			Debug.Log("Window " + Title + " has been setup correctly");
+			// Debug.Log("Window " + Title + " has been setup correctly");
 		}
 
 		if (Application.isEditor) Repaint();

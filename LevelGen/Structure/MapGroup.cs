@@ -19,6 +19,7 @@ public class MapGroup : ICollection<BlockMap> {
 	public int Count => maps.Count;
 	public bool IsReadOnly => false;
 
+	// Constructor ensures that a non-empty group is made
 	public MapGroup(BlockMap map) {
 		Add(map);
 		if (maps.Count == 0) throw new System.ArgumentException("The given block map is invalid");
@@ -100,7 +101,7 @@ public class MapGroup : ICollection<BlockMap> {
 
 		if (adj.ContainsAll("n", "s") || adj.ContainsAll("w", "e")) return 4;
 
-		if (block.type == Block.Type.SlicedConcave) {
+		if (block.type == Block.Type.Concave) {
 			if (move.x != 0 && move.y != 0 && map.GetPixel(pos + move) == block.color && map.GetPixel(pos - move) == block.color) {
 				if (move.x != -1) move.x--;
 				if (move.y != -1) move.y--;

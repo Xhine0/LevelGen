@@ -147,6 +147,7 @@ public abstract class GraphWindow : CGUIWindow {
 	protected virtual void OnDrag(Event e, Graph.Node dragging, System.Func<Graph.Node, Vector2> fromPos, System.Func<Graph.Node, Vector2, Vector2> toPos) {
 		if (e.button == 2 || (e.button == 0 && e.alt)) panPos += e.delta;
 
+		// When control is held down, drag all selected nodes 
 		if (e.control) {
 			EventGraph.Selected.Perform((r) => {
 				r.pos += e.delta / Zoom;

@@ -3,21 +3,19 @@ using UnityEngine;
 
 [System.Serializable]
 public class Block {
-	public enum Type { Simple, SlicedConvex, SlicedConcave };
+	public enum Type { Simple, Convex, Concave };
 	public enum Shape { Unitary, Horizontal, Vertical, Square };
 
 	public Color color;
-	public GameObject[] convexSlice = new GameObject[0];//9
-	public GameObject[] concaveSlice = new GameObject[0];//4
+	public GameObject[] convexSlice = new GameObject[9];//9
+	public GameObject[] concaveSlice = new GameObject[4];//4
 	public GameObject obj;
-	public bool inStasis = true;
 	public Type type = Type.Simple;
 	public Shape shape = Shape.Unitary;
 
 	private Block(Block block) {
 		color = block.color;
 		obj = block.obj;
-		inStasis = block.inStasis;
 		type = block.type;
 		shape = block.shape;
 	}

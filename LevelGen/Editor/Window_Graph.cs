@@ -55,11 +55,11 @@ namespace LevelGen.Editor {
 		#endregion
 
 		#region Event Data Management
-		private ConnectionManager connectRooms, connectExits;
+		private ConnectionManager connectExits;
 		#endregion
 
 		protected override bool DrawGUIInvariant => !(t?.level == null || Rooms == null || Exits == null);
-		protected override bool SetupInvariant => !(connectRooms == null || connectExits == null);
+		protected override bool SetupInvariant => !(connectExits == null);
 
 		protected override void OnEnable() {
 			base.OnEnable();
@@ -68,7 +68,7 @@ namespace LevelGen.Editor {
 
 		protected sealed override void OnGUI() {
 			if (t == null && gen != null) {
-				Debug.Log("Auto-locating level generator");
+				// Debug.Log("Auto-locating level generator");
 				OnEnable();
 			}
 
@@ -78,12 +78,10 @@ namespace LevelGen.Editor {
 		}
 
 		protected override void Setup() {
-			connectRooms = new ConnectionManager(Rooms);
 			connectExits = new ConnectionManager(Exits);
 		}
 
 		protected override void DrawErrorGUI() {
-			Debug.Log("t: " + t + ", level: " + t?.level + ", rooms: " + Rooms + ", exits: " + Exits);
 			LabelField("No level assigned (Go to Level Generator > Show Room Inspector)", EditorStyles.helpBox);
 		}
 		protected override void DrawGUI() {
@@ -97,6 +95,8 @@ namespace LevelGen.Editor {
 			}
 			t.level.groups.Perform(DrawGroup);
 			DrawConnections();
+
+			DrawSelectionPanel();
 
 			Horizontal(() => {
 				if (GUILayout.Button("Reset View", Width(100))) ResetView();
@@ -134,17 +134,28 @@ namespace LevelGen.Editor {
 
 		protected override void OnLeftMouseUp(Event e) {
 			base.OnLeftMouseUp(e);
-			connectRooms.End();
 			connectExits.End();
 		}
 		#endregion
 
 		#region Drawers
-		private void DrawSelectedGroup() {
-			Rect rect = SelectedGroupRect(Rooms, null);
-			if (rect == null) return;
-			EditorGUI.DrawRect(rect, Color.white.Fade(0.1f));
-			DrawOutline(rect.position, rect.size, 3, Color.white, default);
+		private void DrawSelectionPanel() {
+			Graph.Node[] selectedRooms = Rooms.Selected;
+			if (selectedRooms.Length == 0) return;
+
+			Vector2? min = null, max = null;
+			foreach (Graph.Node node in selectedRooms) {
+				min = min.HasValue ? Vector2.Min(node.pos, min.Value) : node.pos;
+				max = max.HasValue ? Vector2.Max(node.pos + node.size, max.Value) : node.pos + node.size;
+			}
+			Vector2 p = ScreenPos(min.Value), s = ScreenSize(max.Value - min.Value);
+
+			DrawOutline(p, s, 4, SelectColor, CGUI.Constants.LineStyle.Solid);
+
+			if (GUI.Button(new Rect(p + ROOM_MENU_POS, Vector2.one * 20), ToolBox.Data.Resources.Symbols["down"].ToString())) {
+				t.GroupRooms(selectedRooms.Perform((e) => e.value));
+				Rooms.ClearSelection();
+			}
 		}
 
 		private void DrawGroup(MapGroup group) {
@@ -155,49 +166,32 @@ namespace LevelGen.Editor {
 			var (p0, p1) = (ScreenPos(boundary.start), ScreenPos(boundary.end));
 			Vector2 s = p1 - p0;
 			DrawOutline(p0, s, 4, Color.white, CGUI.Constants.LineStyle.Dashed, true);
-
-			if (connectRooms.Ongoing && group.IdAvailable(connectRooms.from.value)) {
-				if (GUI.Button(new Rect(p0, s), "", BoxStyles.Flat(Color.white.Fade(0.6f)))) {
-					t.GroupRooms(connectRooms.from.value, group.maps[0].Id);
-					connectRooms.End();
-				}
-			}
 		}
 		private void DrawRoom(Graph.Node room) {
 			if (room?.value == null) {
 				Debug.LogError("Room node cannot be null");
 				return;
 			}
-			bool isConnectFrom = room.Equals(connectRooms.from);
 			Vector2 p = ScreenPos(room.pos), s = ScreenSize(room.size);
 		
 			if (t.IdAvailable(room.value)) throw new ArgumentException("The room " + room.value + " has no corresponding block container");
 			#region Draw Node (with menu)
 			DrawImage(new Rect(p, s), t.GetMapById(room.value).Texture);
+			DrawOutline(p, s, 2, Color.black, default);
 
-			if (Rooms.AnySelected(room) && !Rooms.IsRoot(room) && GUI.Button(new Rect(p + ROOT_POS, new Vector2(50, 14)), "Root")) {
-				Rooms.Root = room;
+			// Only draw node menu if it is selected
+			if (Rooms.AnySelected(room)) {
+				if (!Rooms.IsRoot(room) && GUI.Button(new Rect(p + ROOT_POS, new Vector2(50, 14)), "Root")) {
+					Rooms.Root = room;
+				}
 			}
 			#endregion
-
-			DrawOutline(p, s, 4, isConnectFrom ? HighlightColor : Rooms.AnySelected(room) ? SelectColor : Color.black, default);
-
-			
 			
 			Handles.Label(p, room.value, LabelStyles.ColoredBg(Color.white.Fade(0.75f), Color.black, FontStyle.Bold));
 			if (showDebugInfo) Handles.Label(p + Vector2.right * s + Vector2.down * 16, Rooms.IndexOf(room).ToString(), LabelStyles.Colored(Color.white, FontStyle.Normal));
 
 			if (Rooms.IsRoot(room)) {
 				Handles.Label(p + ROOT_POS + Vector2.up * 4, "Root", LabelStyles.Colored(HighlightColor, FontStyle.Bold));
-			}
-
-			if (!connectRooms.Ongoing) {
-				DrawConnectionPanel(connectRooms, room, ScreenPos, ToolBox.Data.Resources.Symbols["down"].ToString(), ROOM_MENU_POS);
-			} else if (connectRooms.from == room) {
-				if (GUI.Button(new Rect(p + ROOM_MENU_POS, Vector2.one * 20), ToolBox.Data.Resources.Symbols["up"].ToString())) {
-					t.SeparateRoomFromGroup(room.value);
-					connectRooms.End();
-				}
 			}
 		}
 
@@ -231,7 +225,7 @@ namespace LevelGen.Editor {
 			foreach (var (ai, bi) in Rooms.Edges) {
 				Graph.Node a = Rooms[ai], b = Rooms[bi];
 				DrawEdge(ScreenPos(a.pos), ScreenPos(b.pos), Palette[new int[] { ai, bi }.Perform((i) => {
-					return Rooms.IndexOf(connectRooms.from) == i ? 2 : Rooms.AnySelected(Rooms[i].value) ? 1 : 0;
+					return Rooms.AnySelected(Rooms[i].value) ? 1 : 0;
 				}).Max()], 3, CGUI.Constants.LineStyle.Dashed, true);
 			}
 

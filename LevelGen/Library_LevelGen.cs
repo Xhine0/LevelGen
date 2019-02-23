@@ -105,7 +105,6 @@ namespace LevelGen.Editor {
 
 			DrawBlocksPanel("Shared", ref sharedBlocks, (b) => {
 				if (GUILayout.Button(Symbols["doubleDagger"].ToString(), Width(W.SmallButton))) {
-					b.inStasis = false;
 					localBlocks = localBlocks.Append(b);
 				}
 			});
@@ -120,47 +119,26 @@ namespace LevelGen.Editor {
 			map.blockOverrides = new List<Block>(localBlocks);
 		}
 
-		private void DrawStasisPanel(Block[] blocks) {
-			Horizontal(() => {
-				List<System.Action> panel = new List<System.Action>();
-
-				blocks.Perform((b) => {
-					if (b.inStasis) panel.Add(() => {
-						if (GUILayout.Button("", BoxStyles.Colored(b.color), GUILayout.Height(10), GUILayout.ExpandWidth(true)))
-							b.inStasis = !b.inStasis;
-					});
-				});
-
-				if (panel.Count != 0) {
-					LabelField("Hidden", GUILayout.Width(42));
-					panel.Perform();
-					LabelField(panel.Count.ToString(), GUILayout.Width(20));
-				}
-			});
-		}
-
 		private void DrawBlocksPanel(string title, ref Block[] blocks, params System.Action<Block>[] extensions) {
 			if (blocks.Length == 0) return;
 			if (title != null) LabelField(title, LabelStyles.centeredBoldMiniLabel);
-			DrawStasisPanel(blocks);
+			//DrawStasisPanel(blocks);
 
 			Block prev = null;
 			blocks.Perform((block) => {
-				if (block.inStasis) return;
-
 				if (prev != null && prev.type != Block.Type.Simple) { Line(); Space(); }
 				Horizontal(() => {
 					#region Block Panel
-					if (GUILayout.Button("", BoxStyles.Colored(block.color), Width(60), Height(16))) block.inStasis = !block.inStasis;
+					GUILayout.Box("", BoxStyles.Colored(block.color), Width(60), Height(16));
 
 					if (block.type == Block.Type.Simple) DrawImage(block.obj != null ? AssetPreview.GetAssetPreview(block.obj.gameObject) : null, 16);
 					else GUILayout.FlexibleSpace();
 
 					Vertical(() => {
-						//VerticalSpace(2);
+						VerticalSpace(2);
 						Horizontal(() => {
-							block.obj = ObjField(block.obj);
-							block.type = (Block.Type)EnumPopup(block.type, Width(56));
+							if (block.type == Block.Type.Simple) block.obj = ObjField(block.obj);
+							block.type = (Block.Type)EnumPopup(block.type, Width(W.Enum));
 							block.shape = (Block.Shape)EnumPopup(block.shape, Width(W.Enum));
 						});
 					});
@@ -184,7 +162,7 @@ namespace LevelGen.Editor {
 			});
 
 			VerticalSpace(6);
-			if (block.type == Block.Type.SlicedConcave) {
+			if (block.type == Block.Type.Concave) {
 				Horizontal(() => {
 					HorizontalSpace(8);
 					DrawGallery(Aesthetic.AssetsPreview(block.concaveSlice), 2, 16);
