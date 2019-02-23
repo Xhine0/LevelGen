@@ -113,8 +113,7 @@ namespace LevelGen.Editor {
 				+ "        Zoom: " + Zoom + "        Room Count: " + Rooms.Count + "  |  Exit Count: " + Exits.Count + "  |  Edge Count: " + Exits.Edges.Length
 				+ "        Group Count: " + t.level.groups.Count
 				+ "        Room Connections: " + Rooms.Edges.Length + "  |  Exit Connections: " + Exits.Edges.Length, EditorStyles.helpBox);
-
-
+			
 			RunFuncQueue();
 			HandleEvents(Event.current, Rooms.DragTarget);
 		}
@@ -140,6 +139,11 @@ namespace LevelGen.Editor {
 
 		#region Drawers
 		private void DrawSelectionPanel() {
+			if (LeftMouseDown) {
+				GUI.Box(new Rect(Vector2.Min(StartClickPos, Event.current.mousePosition), (Event.current.mousePosition - StartClickPos).Abs()), "", BoxStyles.Colored(Color.white.Fade(0.2f)));
+			}
+
+			/*
 			Graph.Node[] selectedRooms = Rooms.Selected;
 			if (selectedRooms.Length == 0) return;
 
@@ -156,6 +160,7 @@ namespace LevelGen.Editor {
 				t.GroupRooms(selectedRooms.Perform((e) => e.value));
 				Rooms.ClearSelection();
 			}
+			*/
 		}
 
 		private void DrawGroup(MapGroup group) {

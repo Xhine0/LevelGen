@@ -54,6 +54,9 @@ public abstract class GraphWindow : CGUIWindow {
 	private List<(System.Func<bool>, System.Action)> funcQueue = new List<(System.Func<bool>, System.Action)>();
 	
 	protected abstract UndirectedEventGraph EventGraph { get; }
+
+	public Vector2 StartClickPos { get; private set; } = default;
+	public bool LeftMouseDown { get; private set; } = false;
 	#endregion
 
 	#region Event Handling
@@ -154,16 +157,26 @@ public abstract class GraphWindow : CGUIWindow {
 			});
 		}
 		else {
-			if (!e.alt && e.button == 0) EventGraph.Drag(WorldPos(e.mousePosition), null);
+			if (!e.alt && e.button == 0) {
+				EventGraph.Drag(WorldPos(e.mousePosition), null);
+				if (!EventGraph.Dragging) {
+					GUI.Box(new Rect(StartClickPos, e.mousePosition - StartClickPos), "", CGUI.Styles.BoxStyles.Colored(Color.white.Fade(0.4f)));
+				}
+			}
 			if (e.shift) SnapPos(dragging, null, null);
 		}
 	}
 	protected virtual void OnLeftMouseDown(Event e) {
+		StartClickPos = e.mousePosition;
+		LeftMouseDown = true;
+
 		Vector2 worldMousePos = WorldPos(e.mousePosition);
 		EventGraph.EndDrag();
 		EventGraph.StartDrag(worldMousePos, ClickedNodeI(e, EventGraph, null), null);
 	}
 	protected virtual void OnLeftMouseUp(Event e) {
+		LeftMouseDown = false;
+
 		if (!e.control) HandleSelection(e, EventGraph, ClickedNodeI(e, EventGraph, null));
 	}
 	protected virtual void OnRightMouseDown(Event e) { }
