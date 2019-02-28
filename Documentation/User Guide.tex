@@ -21,6 +21,11 @@
 	\\ To edit the level, add it to the level field in the room inspector.
 	
 	\section{LevelGen Manual}
+	\textit{This section describes the terminology used throughout the guide}
+	\label{section_manual}
+	\subsection{Bitmaps}
+	\label{section_manual-bitmaps}
+	Bitmaps are simply an image file, whose pixels represent some block in a room. 
 	\subsection{Rooms}
 	A room is defined by a bit map, where each pixel color represents a unique object, called a block. Each room can have one or more exits.
 	\subsubsection{Blocks}
@@ -42,7 +47,9 @@
 	\end{figure}
 
 	The exit color defines where the room's exits are placed. 
-	\\When a bit map and an available id is assigned, the room can be created by clicking 'Add Room'. The room should now appear as a node on the room graph (figure \ref{fig:node_room})
+	\\When a bit map and an available id is assigned, the room can be created by clicking 'Add Room'. The room should now appear as a node on the room graph (figure \ref{fig:node_room}). \\
+	A bitmap that doesn't meet the import requirements (described in section \ref{section_manual-bitmaps}), can be fixed by clicking the 'Fix Texture' button. \textit{NB! This will alter the image file on disk} \\
+	
 	
 	\subsubsection{Editing a room}
 	\begin{figure}[h]
