@@ -101,6 +101,10 @@ namespace LevelGen.Editor {
 			Horizontal(() => {
 				if (GUILayout.Button("Reset View", Width(100))) ResetView();
 				showGrid = ToggleButton(showGrid, "Hide Grid", "Show Grid", Width(100));
+				Disable(Rooms.SelectI.Length == 0, () => {
+					if (GUILayout.Button(new GUIContent("Group selected", "Hotkey: G"), Width(100)))
+						t.GroupRooms(Rooms.Selected.Perform((x) => x.value));
+				});
 				showDebugInfo = ToggleButton(showDebugInfo, "Hide Debug", "Show Debug", Width(100));
 				if (showDebugInfo) {
 					HorizontalSpace(10);
@@ -129,6 +133,10 @@ namespace LevelGen.Editor {
 					t.RemoveRoom(room);
 				})
 			);
+
+			if (e.keyCode == KeyCode.G) {
+				t.GroupRooms(Rooms.Selected.Perform((node) => node.value));
+			}
 		}
 
 		protected override void OnLeftMouseUp(Event e) {
@@ -138,31 +146,6 @@ namespace LevelGen.Editor {
 		#endregion
 
 		#region Drawers
-		private void DrawSelectionPanel() {
-			if (LeftMouseDown) {
-				GUI.Box(new Rect(Vector2.Min(StartClickPos, Event.current.mousePosition), (Event.current.mousePosition - StartClickPos).Abs()), "", BoxStyles.Colored(Color.white.Fade(0.2f)));
-			}
-
-			/*
-			Graph.Node[] selectedRooms = Rooms.Selected;
-			if (selectedRooms.Length == 0) return;
-
-			Vector2? min = null, max = null;
-			foreach (Graph.Node node in selectedRooms) {
-				min = min.HasValue ? Vector2.Min(node.pos, min.Value) : node.pos;
-				max = max.HasValue ? Vector2.Max(node.pos + node.size, max.Value) : node.pos + node.size;
-			}
-			Vector2 p = ScreenPos(min.Value), s = ScreenSize(max.Value - min.Value);
-
-			DrawOutline(p, s, 4, SelectColor, CGUI.Constants.LineStyle.Solid);
-
-			if (GUI.Button(new Rect(p + ROOM_MENU_POS, Vector2.one * 20), ToolBox.Data.Resources.Symbols["down"].ToString())) {
-				t.GroupRooms(selectedRooms.Perform((e) => e.value));
-				Rooms.ClearSelection();
-			}
-			*/
-		}
-
 		private void DrawGroup(MapGroup group) {
 			if (group.maps.Count == 0) return;
 			var (head, tail) = group.maps.Perform((m) => Rooms.FindNodeByValue(m.Id)).Step();
@@ -182,7 +165,7 @@ namespace LevelGen.Editor {
 			if (t.IdAvailable(room.value)) throw new ArgumentException("The room " + room.value + " has no corresponding block container");
 			#region Draw Node (with menu)
 			DrawImage(new Rect(p, s), t.GetMapById(room.value).Texture);
-			DrawOutline(p, s, 2, Color.black, default);
+			DrawOutline(p, s, 2, Rooms.IsSelected(room) ? SelectColor : Color.black, default);
 
 			// Only draw node menu if it is selected
 			if (Rooms.AnySelected(room)) {
@@ -192,7 +175,7 @@ namespace LevelGen.Editor {
 			}
 			#endregion
 			
-			Handles.Label(p, room.value, LabelStyles.ColoredBg(Color.white.Fade(0.75f), Color.black, FontStyle.Bold));
+			Handles.Label(p, room.value, LabelStyles.Colored(Color.white, FontStyle.Bold));
 			if (showDebugInfo) Handles.Label(p + Vector2.right * s + Vector2.down * 16, Rooms.IndexOf(room).ToString(), LabelStyles.Colored(Color.white, FontStyle.Normal));
 
 			if (Rooms.IsRoot(room)) {

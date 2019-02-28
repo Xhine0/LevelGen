@@ -5,6 +5,8 @@ using UnityEditor;
 using static UnityEditor.EditorGUILayout;
 
 public abstract class CGUIWindow : EditorWindow {
+	public Texture2D BlankTexture { get; private set; }
+
 	public Color GuiColor { get; private set; }
 	public Color GuiBgColor { get; private set; }
 	public Color GuiContentColor { get; private set; }
@@ -42,6 +44,8 @@ public abstract class CGUIWindow : EditorWindow {
 	}
 
 	protected virtual void OnEnable() {
+		BlankTexture = ToolBox.Utility.Conversions.ColorToTexture(1, Color.white);
+
 		string name = this.Path().Slice('/', -1, 0).Slice('_', -1, 0).Slice('.', -1);
 		Texture2D icon = AssetDatabase.LoadAssetAtPath<Texture2D>(this.Path().Slice('/', -1) + "/Icon_" + name + ".psd");
 		if (icon != null)

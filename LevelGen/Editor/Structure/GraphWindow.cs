@@ -56,7 +56,7 @@ public abstract class GraphWindow : CGUIWindow {
 	protected abstract UndirectedEventGraph EventGraph { get; }
 
 	public Vector2 StartClickPos { get; private set; } = default;
-	public bool LeftMouseDown { get; private set; } = false;
+	public bool SelectActive { get; private set; } = false;
 	#endregion
 
 	#region Event Handling
@@ -134,14 +134,16 @@ public abstract class GraphWindow : CGUIWindow {
 
 	protected void HandleSelection(Event e, UndirectedEventGraph graph, int i) {
 		// Don't handle selection if a valid drag was performed
-		if (!graph.Dragging || graph.DragDelta.magnitude < MIN_DRAG_DISTANCE / Zoom) {
-			if (!e.shift) graph.ClearSelection();
+		if (!graph.IsDragging || graph.DragDelta.magnitude < MIN_DRAG_DISTANCE / Zoom) {
 			graph.Select(i);
 		}
 		graph.EndDrag();
 	}
+	protected void HandleSelection(Event e, UndirectedEventGraph graph, Graph.Node node) => HandleSelection(e, graph, graph.IndexOf(node));
 
-	protected virtual void OnKeyDown(Event e) { }
+	protected virtual void OnKeyDown(Event e) {
+		if (e.alt || e.control) SelectActive = false;
+	}
 	protected virtual void OnScroll(Event e) {
 		float prevZoom = Zoom;
 		Zoom -= e.delta.y * Zoom * SCROLL_SENSITIVITY;
@@ -159,8 +161,8 @@ public abstract class GraphWindow : CGUIWindow {
 		else {
 			if (!e.alt && e.button == 0) {
 				EventGraph.Drag(WorldPos(e.mousePosition), null);
-				if (!EventGraph.Dragging) {
-					GUI.Box(new Rect(StartClickPos, e.mousePosition - StartClickPos), "", CGUI.Styles.BoxStyles.Colored(Color.white.Fade(0.4f)));
+				if (!EventGraph.IsDragging) {
+					EditorGUI.DrawRect(new Rect(StartClickPos, e.mousePosition - StartClickPos), Color.white.Fade(0.4f));
 				}
 			}
 			if (e.shift) SnapPos(dragging, null, null);
@@ -168,16 +170,27 @@ public abstract class GraphWindow : CGUIWindow {
 	}
 	protected virtual void OnLeftMouseDown(Event e) {
 		StartClickPos = e.mousePosition;
-		LeftMouseDown = true;
 
 		Vector2 worldMousePos = WorldPos(e.mousePosition);
 		EventGraph.EndDrag();
 		EventGraph.StartDrag(worldMousePos, ClickedNodeI(e, EventGraph, null), null);
+
+		if (!(e.control || e.alt || EventGraph.IsDragging)) SelectActive = true;
 	}
 	protected virtual void OnLeftMouseUp(Event e) {
-		LeftMouseDown = false;
+		if (!e.shift) EventGraph.ClearSelection();
+		HandleSelection(e, EventGraph, ClickedNodeI(e, EventGraph, null));
 
-		if (!e.control) HandleSelection(e, EventGraph, ClickedNodeI(e, EventGraph, null));
+		if (SelectActive) {	
+			foreach (Graph.Node node in EventGraph) {
+				Vector2 s = ScreenPos(node.pos);
+				if (s.InInterval(StartClickPos, e.mousePosition)) {
+					HandleSelection(e, EventGraph, node);
+				}
+			}
+
+			SelectActive = false;
+		}
 	}
 	protected virtual void OnRightMouseDown(Event e) { }
 	protected virtual void OnRightMouseUp(Event e) { }
@@ -273,7 +286,7 @@ public abstract class GraphWindow : CGUIWindow {
 		Switch(style,
 			(LineStyle.Solid,  () => { Handles.color = color; Handles.DrawAAPolyLine(width, p0, p1); }), 
 			(LineStyle.Dashed, () => CGUI.Drawers.DrawDashedLine(p0, p1, color, width, 10)), 
-			(LineStyle.Bezier, () => Handles.DrawBezier(p0, p1, t0, t1, color, ToolBox.Utility.Conversions.ColorToTexture(1, Color.white), width))
+			(LineStyle.Bezier, () => Handles.DrawBezier(p0, p1, t0, t1, color, BlankTexture, width))
 		);
 
 		//if (directed) CGUI.Drawers.DrawPoint(p1, color, 20, width);
@@ -296,6 +309,13 @@ public abstract class GraphWindow : CGUIWindow {
 	}
 	protected void DrawOutline(Vector2 a, Vector2 size, float lineWidth, Color color, LineStyle style) {
 		DrawOutline(a, size, lineWidth, color, style, false);
+	}
+
+	protected void DrawSelectionPanel() {
+		Vector2 mousePos = Event.current.mousePosition;
+		if (SelectActive && StartClickPos != mousePos) {
+			EditorGUI.DrawRect(new Rect(Vector2.Min(StartClickPos, mousePos), (mousePos - StartClickPos).Abs()), Color.white.Fade(0.2f));
+		}
 	}
 	#endregion
 }

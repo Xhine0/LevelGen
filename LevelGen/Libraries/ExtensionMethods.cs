@@ -134,13 +134,11 @@ public static class ExtensionMethods {
 	}
 
 	/// <summary>
-	/// Checks if the vector is within a given interval (inclusive)
+	/// Checks if a vector is within a given interval (inclusive)
 	/// </summary>
-	/// <param name="val">Vector to check</param>
-	/// <param name="minVal">Min vector [inclusive]</param>
-	/// <param name="maxVal">Max vector [inclusive]</param>
 	/// <returns>If the vector is within interval</returns>
-	public static bool InInterval(this Vector2 val, Vector2 minVal, Vector2 maxVal) {
+	public static bool InInterval(this Vector2 val, Vector2 a, Vector2 b) {
+		Vector2 minVal = Vector2.Min(a, b), maxVal = Vector2.Max(a, b);
 		return val.x >= minVal.x && val.x <= maxVal.x && val.y >= minVal.y && val.y <= maxVal.y;
 	}
 	/// <summary>

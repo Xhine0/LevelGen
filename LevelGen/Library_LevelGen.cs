@@ -14,8 +14,6 @@ using CGUI.Styles;
 
 namespace LevelGen {
 	public class Data {
-		public const int LIBRARY_NODE_SIZE = 30;
-
 		/// <summary>
 		/// A persistent object carries over between rooms
 		/// </summary>
@@ -129,12 +127,17 @@ namespace LevelGen.Editor {
 				if (prev != null && prev.type != Block.Type.Simple) { Line(); Space(); }
 				Horizontal(() => {
 					#region Block Panel
-					GUILayout.Box("", BoxStyles.Colored(block.color), Width(60), Height(16));
+					GUILayout.Box("", Width(60), Height(16));
+					EditorGUI.DrawRect(GUILayoutUtility.GetLastRect(), block.color);
 
 					Vertical(() => {
 						VerticalSpace(2);
 						Horizontal(() => {
-							if (block.type == Block.Type.Simple) block.obj = ObjField(block.obj);
+							if (block.type == Block.Type.Simple) {
+								DrawImage(AssetPreview.GetAssetPreview(block.obj), 16, 16);
+								block.obj = ObjField(block.obj);
+							}
+							else GUILayout.FlexibleSpace();
 							block.type = (Block.Type)EnumPopup(block.type, Width(W.Enum));
 							block.shape = (Block.Shape)EnumPopup(block.shape, Width(W.Enum));
 						});
@@ -154,6 +157,7 @@ namespace LevelGen.Editor {
 
 		private void DrawBlockSlicePanel(Block block) {
 			Horizontal(() => {
+				DrawGallery(Aesthetic.AssetsPreview(block.convexSlice), 3, 16);
 				DrawTable(block.convexSlice, 3, 0, 0, 4, 0);
 			});
 

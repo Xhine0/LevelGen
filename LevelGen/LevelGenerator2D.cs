@@ -116,6 +116,8 @@ public class LevelGenerator2D : MonoBehaviour {
 	public void RemoveRoom(Graph.Node node) => RemoveRoom(node.value);
 
 	public void GroupRooms(string[] ids) {
+		if (ids?.Length == 0) return;
+
 		MapGroup group = new MapGroup(GetMapById(ids.Head()));
 		ids.Tail().Perform((id) => group.Add(GetMapById(id)));
 

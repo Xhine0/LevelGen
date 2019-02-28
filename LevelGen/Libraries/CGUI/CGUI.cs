@@ -333,18 +333,6 @@ namespace CGUI {
 	}
 }
 namespace CGUI.Styles {
-	public static class BoxStyles {
-		public static GUIStyle Flat(Color color) {
-			GUIStyle style = new GUIStyle();
-			style.normal.background = ToolBox.Utility.Conversions.ColorToTexture(1, color);
-			return style;
-		}
-		public static GUIStyle Colored(Color color) {
-			GUIStyle style = new GUIStyle(GUI.skin.box);
-			style.normal.background = ToolBox.Utility.Conversions.ColorToTexture(1, color);
-			return style;
-		}
-	}
 	public static class LabelStyles {
 		public static GUIStyle centeredBoldMiniLabel {
 			get {
@@ -359,11 +347,6 @@ namespace CGUI.Styles {
 			return style;
 		}
 		public static GUIStyle Colored(Color color, FontStyle fontStyle) => Colored(color, fontStyle, default);
-		public static GUIStyle ColoredBg(Color textColor, Color bgColor, FontStyle fontStyle) {
-			GUIStyle style = new GUIStyle(BoxStyles.Flat(bgColor)) { fontStyle = fontStyle };
-			style.normal.textColor = textColor;
-			return style;
-		}
 	}
 	public static class ButtonStyles {
 		public static GUIStyle Standard {

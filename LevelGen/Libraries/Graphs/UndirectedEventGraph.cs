@@ -19,8 +19,8 @@ public class UndirectedEventGraph : UndirectedGraph {
 	/// </summary>
 	public Vector2 DragDelta => !this.Safe(DragI) ? Vector2.zero : this[DragI].pos - StartDragPos + DragOffset;
 
-	public bool Dragging => DragI != -1;
-	public Node DragTarget => !Dragging ? null : this[DragI];
+	public bool IsDragging => DragI != -1;
+	public Node DragTarget => !IsDragging ? null : this[DragI];
 	public Node[] Selected => selectI.Perform((i) => this[i]);
 
 	/// <summary>
