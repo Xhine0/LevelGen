@@ -1,5 +1,6 @@
 ﻿#if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using CGUI.Styles;
@@ -12,6 +13,7 @@ using static ToolBox.Syntax.Syntax;
 
 namespace LevelGen.Editor {
 	public class Window_Graph : GraphWindow {
+		private const float ROOM_BANNER_HEIGHT = 14, ROOM_BANNER_MARGIN = 60;
 		private Vector2 ROOM_MENU_POS => new Vector2(0, -22);
 		private Vector2 EXIT_MENU_POS => new Vector2(0, 0);
 		private Vector2 ROOT_POS => ROOM_MENU_POS + Vector2.right * 22;
@@ -152,6 +154,7 @@ namespace LevelGen.Editor {
 			(Vector2 start, Vector2 end) boundary = (head.pos, head.pos + head.size);
 			tail.Perform((n) => boundary = (Vector2.Min(n.pos, boundary.start), Vector2.Max(n.pos + n.size, boundary.end)));
 			var (p0, p1) = (ScreenPos(boundary.start), ScreenPos(boundary.end));
+			p1 += Vector2.up * ROOM_BANNER_HEIGHT;
 			Vector2 s = p1 - p0;
 			DrawOutline(p0, s, 4, Color.white, CGUI.Constants.LineStyle.Dashed, true);
 		}
@@ -167,6 +170,8 @@ namespace LevelGen.Editor {
 			DrawImage(new Rect(p, s), t.GetMapById(room.value).Texture);
 			DrawOutline(p, s, 2, Rooms.IsSelected(room) ? SelectColor : Color.black, default);
 
+			DrawRoomBanner(room);
+
 			// Only draw node menu if it is selected
 			if (Rooms.AnySelected(room)) {
 				if (!Rooms.IsRoot(room) && GUI.Button(new Rect(p + ROOT_POS, new Vector2(50, 14)), "Root")) {
@@ -181,6 +186,23 @@ namespace LevelGen.Editor {
 			if (Rooms.IsRoot(room)) {
 				Handles.Label(p + ROOT_POS + Vector2.up * 4, "Root", LabelStyles.Colored(HighlightColor, FontStyle.Bold));
 			}
+		}
+		private void DrawRoomBanner(Graph.Node room) {
+			List<Block> blockOverrides = t.GetMapById(room.value).blockOverrides;
+			if (blockOverrides.Count == 0) return;
+
+			Vector2 rs = ScreenSize(room.size), s = new Vector2(rs.x, ROOM_BANNER_HEIGHT), p = ScreenPos(room.pos) + Vector2.up * rs.y;
+			EditorGUI.DrawRect(new Rect(p, s), new Color(0.1f, 0.1f, 0.1f));
+			DrawOutline(p, s, 2, Rooms.IsSelected(room) ? SelectColor : Color.black, default);
+
+			for (int i = 0; i < blockOverrides.Count; i++) {
+				Vector2 size = new Vector2(Mathf.Min((s.x - ROOM_BANNER_MARGIN) / blockOverrides.Count, 40), s.y), pos = p + Vector2.right * (size.x * i + ROOM_BANNER_MARGIN);
+				EditorGUI.DrawRect(new Rect(pos, size), blockOverrides[i].color);
+				DrawOutline(pos, size, 1, Color.white, default);
+			}
+			GUIStyle labelStyle = LabelStyles.Colored(Color.white, default);
+			labelStyle.fontSize = 10;
+			Handles.Label(p, "Overrides", labelStyle);
 		}
 
 		private void DrawExit(Graph.Node exit, Color color) {
